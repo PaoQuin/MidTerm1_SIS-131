@@ -1,5 +1,8 @@
 Attribute VB_Name = "modALU"
 Option Explicit
+Public ZF As Integer
+Public CF As Integer
+Public SF As Integer
 
 Public Function ALUAdd(ByVal a As Integer, ByVal b As Integer) As Integer
     ALUAdd = (a + b) Mod 256
@@ -48,7 +51,6 @@ Public Function ALUNot(ByVal a As Integer) As Integer
     ALUNot = (Not a) And 255
 End Function
 
-
 Public Function ALUCmp(ByVal a As Integer, ByVal b As Integer) As Integer
     ALUCmp = (a - b) Mod 256
 
@@ -56,3 +58,24 @@ Public Function ALUCmp(ByVal a As Integer, ByVal b As Integer) As Integer
         ALUCmp = ALUCmp + 256
     End If
 End Function
+
+Public Sub UpdateFlags(ByVal result As Integer, ByVal carry As Integer)
+
+    ' Zero Flag
+    If result = 0 Then
+        ZF = 1
+    Else
+        ZF = 0
+    End If
+
+    ' Carry Flag
+    CF = carry
+
+    ' Sign Flag
+    If result >= 128 Then
+        SF = 1
+    Else
+        SF = 0
+    End If
+
+End Sub
