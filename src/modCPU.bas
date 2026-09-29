@@ -313,52 +313,51 @@ Public Sub Store()
 End Sub
 
 Public Sub StepCPU()
+    Dim detail As String
+
     If CPUHalted Then Exit Sub
 
     Select Case CurrentPhase
 
-        Case 0
+        Case 0   ' FETCH
             Fetch
-            LogMicroOperation "FETCH"
+            detail = "MAR=" & HexByte(MAR) & " MDR=" & HexByte(MDR) & _
+                     " -> IR=" & HexByte(IR) & ", PC=" & HexByte(PC)
+            LogMicroOperation "FETCH", detail
             CurrentPhase = 1
 
-        Case 1
+        Case 1   ' DECODE
             Decode
-            LogMicroOperation "DECODE"
+            detail = DecodedInstruction & " (OP1=" & HexByte(Operand1) & _
+                     ", OP2=" & HexByte(Operand2) & ")"
+            LogMicroOperation "DECODE", detail
             CurrentPhase = 2
 
-        Case 2
+        Case 2   ' EXECUTE
             Execute
-            LogMicroOperation "EXECUTE"
+            detail = "ZF=" & ZF & " CF=" & CF & " SF=" & SF & ", PC=" & HexByte(PC)
+            If PendingStore Then detail = "Result=" & HexByte(PendingResult) & ", " & detail
+            If PendingMemoryStore Then detail = "MAR=" & HexByte(MAR) & " MDR=" & HexByte(MDR) & ", " & detail
+            If CPUHalted Then detail = "HLT: clock stopped"
+            LogMicroOperation "EXECUTE", detail
             CurrentPhase = 3
 
-        Case 3
+        Case 3   ' STORE
+            If PendingStore Then
+                detail = IIf(PendingTarget = 0, "AX", "BX") & " <- " & HexByte(PendingResult)
+            ElseIf PendingMemoryStore Then
+                detail = "MDR -> RAM[" & HexByte(MAR) & "] = " & HexByte(MDR)
+            Else
+                detail = "no write-back"
+            End If
             Store
-            LogMicroOperation "STORE"
+            LogMicroOperation "STORE", detail
             CurrentPhase = 0
 
     End Select
 
-    ' Highlight the next active phase
     HighlightPhase CurrentPhase
-
     UpdateRegisterPanel
-End Sub
-
-Public Sub LogMicroOperation(ByVal phaseName As String)
-
-    Dim ws As Worksheet
-    Dim nextRow As Long
-
-    Set ws = ThisWorkbook.Worksheets("Simulator")
-
-    nextRow = ws.Cells(ws.Rows.Count, "V").End(xlUp).row + 1
-    
-    ws.Cells(nextRow, "V").value = LogStep
-    ws.Cells(nextRow, "W").value = phaseName
-
-    LogStep = LogStep + 1
-
 End Sub
 
 Public Sub ResetCPU()
