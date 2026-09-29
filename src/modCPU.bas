@@ -457,6 +457,51 @@ Public Sub LoadMultiplicationProgram()
 
 End Sub
 
+Public Sub LoadCountdownProgram()
+
+    Dim i As Integer
+
+    ' Clear code segment
+    For i = 0 To 127
+        WriteMemory i, 0
+    Next i
+
+    ' Countdown program: 5 -> 0
+    ' 00: LOAD AX, [80h]
+    WriteMemory 0, &H12
+    WriteMemory 1, &H0
+    WriteMemory 2, &H80
+
+    ' 03: DEC AX
+    WriteMemory 3, &H25
+    WriteMemory 4, &H0
+
+    ' 05: STORE [80h], AX
+    WriteMemory 5, &H13
+    WriteMemory 6, &H80
+    WriteMemory 7, &H0
+
+    ' 08: CMP AX, 00h
+    WriteMemory 8, &H26
+    WriteMemory 9, &H0
+    WriteMemory 10, &H0
+
+    ' 0B: JNZ 03h
+    WriteMemory 11, &H32
+    WriteMemory 12, &H3
+
+    ' 0D: HLT
+    WriteMemory 13, &HFF
+
+    ' Initial data
+    ' 80h = starting value = 5
+    WriteMemory &H80, 5
+
+    ResetCPU
+
+End Sub
+
+
 Public Sub RunCPU()
 
     Dim ws As Worksheet
