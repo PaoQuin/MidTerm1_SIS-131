@@ -20,6 +20,9 @@ Public PendingTarget As Integer
 Public PendingStore As Boolean
 Public PendingMemoryStore As Boolean
 
+Public CurrentPhase As Integer
+
+
 Public Function GetRegisterValue(ByVal reg As Integer) As Integer
 
     If reg = 0 Then
@@ -302,6 +305,33 @@ Public Sub Store()
 
     PendingStore = False
     PendingMemoryStore = False
+
+    UpdateRegisterPanel
+
+End Sub
+Public Sub StepCPU()
+
+    If CPUHalted Then Exit Sub
+
+    Select Case CurrentPhase
+
+        Case 0
+            Fetch
+            CurrentPhase = 1
+
+        Case 1
+            Decode
+            CurrentPhase = 2
+
+        Case 2
+            Execute
+            CurrentPhase = 3
+
+        Case 3
+            Store
+            CurrentPhase = 0
+
+    End Select
 
     UpdateRegisterPanel
 
