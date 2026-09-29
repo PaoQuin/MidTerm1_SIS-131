@@ -367,3 +367,63 @@ Public Sub ResetCPU()
 
 End Sub
 
+Public Sub LoadMultiplicationProgram()
+
+    ' Clear code segment
+    Dim i As Integer
+    For i = 0 To 127
+        WriteMemory i, 0
+    Next i
+
+    ' Multiplication program: 3 x 4 = 12
+    ' 00: LOAD AX, [81h]
+    WriteMemory 0, &H12
+    WriteMemory 1, &H0
+    WriteMemory 2, &H81
+
+    ' 03: CMP AX, 00h
+    WriteMemory 3, &H26
+    WriteMemory 4, &H0
+    WriteMemory 5, &H0
+
+    ' 06: JZ 15h
+    WriteMemory 6, &H31
+    WriteMemory 7, &H15
+
+    ' 08: DEC AX
+    WriteMemory 8, &H25
+    WriteMemory 9, &H0
+
+    ' 0A: STORE [81h], AX
+    WriteMemory 10, &H13
+    WriteMemory 11, &H81
+    WriteMemory 12, &H0
+
+    ' 0D: LOAD AX, [80h]
+    WriteMemory 13, &H12
+    WriteMemory 14, &H0
+    WriteMemory 15, &H80
+
+    ' 10: ADD BX, AX
+    WriteMemory 16, &H21
+    WriteMemory 17, &H1
+    WriteMemory 18, &H0
+
+    ' 13: JMP 00h
+    WriteMemory 19, &H30
+    WriteMemory 20, &H0
+
+    ' 15: HLT
+    WriteMemory 21, &HFF
+
+    ' Initial data
+    ' 80h = multiplicand = 3
+    ' 81h = counter = 4
+    ' 82h = expected result = 12
+    WriteMemory &H80, 3
+    WriteMemory &H81, 4
+    WriteMemory &H82, 12
+
+    ResetCPU
+
+End Sub
