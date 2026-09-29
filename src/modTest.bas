@@ -97,3 +97,66 @@ Public Sub TestALU()
     Debug.Print "===== TEST COMPLETE ====="
 
 End Sub
+
+Public Sub TestMultiplicationProgram()
+
+    Dim i As Integer
+    Dim maxSteps As Integer
+    Dim passed As Boolean
+
+    Debug.Print "===== MULTIPLICATION PROGRAM TEST ====="
+
+    LoadMultiplicationProgram
+
+    maxSteps = 200
+    i = 0
+
+    Do While Not CPUHalted And i < maxSteps
+        StepCPU
+        i = i + 1
+    Loop
+
+    passed = True
+
+    If Not CPUHalted Then
+        Debug.Print "HALT: FAIL"
+        passed = False
+    Else
+        Debug.Print "HALT: PASS"
+    End If
+
+    If BX = 12 Then
+        Debug.Print "RESULT BX=12: PASS"
+    Else
+        Debug.Print "RESULT BX=" & BX & ": FAIL"
+        passed = False
+    End If
+
+    If Read(&H80) = 3 Then
+        Debug.Print "DATA 80h=03h: PASS"
+    Else
+        Debug.Print "DATA 80h: FAIL"
+        passed = False
+    End If
+
+    If Read(&H81) = 0 Then
+        Debug.Print "COUNTER 81h=00h: PASS"
+    Else
+        Debug.Print "COUNTER 81h: FAIL"
+        passed = False
+    End If
+
+    If Read(&H82) = 12 Then
+        Debug.Print "EXPECTED 82h=0Ch: PASS"
+    Else
+        Debug.Print "EXPECTED 82h: FAIL"
+        passed = False
+    End If
+
+    If passed Then
+        Debug.Print "===== MULTIPLICATION TEST: PASS ====="
+    Else
+        Debug.Print "===== MULTIPLICATION TEST: FAIL ====="
+    End If
+
+End Sub
