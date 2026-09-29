@@ -52,3 +52,54 @@ flowchart LR
     CU --> REG
     CU --> ALU
     REG <--> ALU
+
+## Program Trace
+
+### Multiplication Program: 3 × 4 = 12
+
+The demo program performs multiplication by repeated addition.
+
+Initial data:
+
+| Address | Value | Meaning |
+|---|---:|---|
+| 80h | 03h | Multiplicand |
+| 81h | 04h | Counter |
+| 82h | 0Ch | Expected result |
+
+Initial registers:
+
+| Register | Value |
+|---|---|
+| PC | 00h |
+| AX | 00h |
+| BX | 00h |
+
+### Execution Flow
+
+1. `LOAD AX, [81h]` loads the counter into AX.
+2. `CMP AX, 00h` checks whether the counter reached zero.
+3. `JZ 15h` exits the loop when ZF = 1.
+4. `DEC AX` decreases the counter.
+5. `STORE [81h], AX` updates the counter in memory.
+6. `LOAD AX, [80h]` loads the multiplicand.
+7. `ADD BX, AX` adds the multiplicand to the accumulated result.
+8. `JMP 00h` repeats the loop.
+9. When the counter reaches zero, `JZ` jumps to `HLT`.
+
+### Register Trace
+
+| Iteration | Counter | AX | BX |
+|---:|---:|---:|---:|
+| Initial | 04h | 00h | 00h |
+| 1 | 03h | 03h | 03h |
+| 2 | 02h | 03h | 06h |
+| 3 | 01h | 03h | 09h |
+| 4 | 00h | 03h | 0Ch |
+| Final | 00h | 03h | 0Ch |
+
+Final result:
+
+`BX = 0Ch = 12 decimal`
+
+The CPU then reaches `HLT` and stops execution.
