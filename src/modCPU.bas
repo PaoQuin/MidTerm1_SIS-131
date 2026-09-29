@@ -317,20 +317,32 @@ Public Sub StepCPU()
 
     If CPUHalted Then Exit Sub
 
+    ClearHighlights
+
     Select Case CurrentPhase
 
         Case 0   ' FETCH
             Fetch
             detail = "MAR=" & HexByte(MAR) & " MDR=" & HexByte(MDR) & _
                      " -> IR=" & HexByte(IR) & ", PC=" & HexByte(PC)
+            HighlightRegister 11      ' PC
+            HighlightRegister 12      ' IR
+            HighlightRegister 13      ' MAR
+            HighlightRegister 14      ' MDR
+            HighlightMemory MAR
             LogMicroOperation "FETCH", detail
+            HighlightPhase 0
             CurrentPhase = 1
 
         Case 1   ' DECODE
             Decode
             detail = DecodedInstruction & " (OP1=" & HexByte(Operand1) & _
                      ", OP2=" & HexByte(Operand2) & ")"
+            HighlightRegister 12      ' IR
+            HighlightRegister 13      ' MAR
+            HighlightRegister 14      ' MDR
             LogMicroOperation "DECODE", detail
+            HighlightPhase 1
             CurrentPhase = 2
 
         Case 2   ' EXECUTE
@@ -339,24 +351,31 @@ Public Sub StepCPU()
             If PendingStore Then detail = "Result=" & HexByte(PendingResult) & ", " & detail
             If PendingMemoryStore Then detail = "MAR=" & HexByte(MAR) & " MDR=" & HexByte(MDR) & ", " & detail
             If CPUHalted Then detail = "HLT: clock stopped"
+            If DecodedOpcode = &H12 Then HighlightMemory MAR   ' LOAD reads memory
+            HighlightRegister 15      ' AX
+            HighlightRegister 16      ' BX
+            ThisWorkbook.Worksheets("Simulator").Range("T19:T21").Interior.Color = RGB(255, 230, 153)
             LogMicroOperation "EXECUTE", detail
+            HighlightPhase 2
             CurrentPhase = 3
 
         Case 3   ' STORE
             If PendingStore Then
                 detail = IIf(PendingTarget = 0, "AX", "BX") & " <- " & HexByte(PendingResult)
+                HighlightRegister 15 + PendingTarget    ' 15 = AX, 16 = BX
             ElseIf PendingMemoryStore Then
                 detail = "MDR -> RAM[" & HexByte(MAR) & "] = " & HexByte(MDR)
+                HighlightMemory MAR
             Else
                 detail = "no write-back"
             End If
             Store
             LogMicroOperation "STORE", detail
+            HighlightPhase 3
             CurrentPhase = 0
 
     End Select
 
-    HighlightPhase CurrentPhase
     UpdateRegisterPanel
 End Sub
 
