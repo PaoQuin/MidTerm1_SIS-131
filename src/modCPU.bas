@@ -21,6 +21,7 @@ Public PendingStore As Boolean
 Public PendingMemoryStore As Boolean
 
 Public CurrentPhase As Integer
+Public CPURunning As Boolean
 
 
 Public Function GetRegisterValue(ByVal reg As Integer) As Integer
@@ -425,5 +426,37 @@ Public Sub LoadMultiplicationProgram()
     WriteMemory &H82, 12
 
     ResetCPU
+
+End Sub
+
+Public Sub RunCPU()
+
+    Dim ws As Worksheet
+    Dim delayMs As Double
+    Dim startTime As Double
+
+    Set ws = ThisWorkbook.Worksheets("Simulator")
+
+    If CPUHalted Then Exit Sub
+
+    CPURunning = True
+
+    delayMs = ws.Range("T23").value
+
+    If delayMs < 0 Then delayMs = 0
+
+    Do While CPURunning And Not CPUHalted
+
+        StepCPU
+
+        startTime = Timer
+
+        Do While Timer < startTime + (delayMs / 1000)
+            DoEvents
+        Loop
+
+    Loop
+
+    CPURunning = False
 
 End Sub
