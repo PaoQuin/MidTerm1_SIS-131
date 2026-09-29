@@ -311,10 +311,12 @@ Public Sub Store()
     UpdateRegisterPanel
 
 End Sub
+
 Public Sub StepCPU()
     If CPUHalted Then Exit Sub
 
     Select Case CurrentPhase
+
         Case 0
             Fetch
             LogMicroOperation "FETCH"
@@ -334,10 +336,15 @@ Public Sub StepCPU()
             Store
             LogMicroOperation "STORE"
             CurrentPhase = 0
+
     End Select
+
+    ' Highlight the next active phase
+    HighlightPhase CurrentPhase
 
     UpdateRegisterPanel
 End Sub
+
 Public Sub LogMicroOperation(ByVal phaseName As String)
 
     Dim ws As Worksheet
@@ -381,7 +388,9 @@ Public Sub ResetCPU()
     CurrentPhase = 0
     LogStep = 0
     
-    ThisWorkbook.Worksheets("Simulator").Range("S25:T1000").ClearContents
+    HighlightPhase 0
+    
+    ThisWorkbook.Worksheets("Simulator").Range("S22:T1000").ClearContents
 
     UpdateRegisterPanel
 
@@ -486,3 +495,24 @@ Public Sub PauseCPU()
 
 End Sub
 
+Public Sub HighlightPhase(ByVal phase As Integer)
+
+    Dim ws As Worksheet
+
+    Set ws = ThisWorkbook.Worksheets("Simulator")
+
+    ' Clear previous phase highlight
+    ws.Range("V10:W13").Interior.Pattern = xlNone
+
+    Select Case phase
+        Case 0
+            ws.Range("V10:W10").Interior.Color = RGB(255, 255, 0)
+        Case 1
+            ws.Range("V11:W11").Interior.Color = RGB(255, 255, 0)
+        Case 2
+            ws.Range("V12:W12").Interior.Color = RGB(255, 255, 0)
+        Case 3
+            ws.Range("V13:W13").Interior.Color = RGB(255, 255, 0)
+    End Select
+
+End Sub
