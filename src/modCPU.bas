@@ -405,11 +405,12 @@ Public Sub ResetCPU()
     CPUHalted = False
     CurrentPhase = 0
     LogStep = 1
-    
+
     HighlightPhase 0
-    
+
     ThisWorkbook.Worksheets("Simulator").Range("V18:W1000").ClearContents
 
+    ClearHighlights
     UpdateRegisterPanel
 
 End Sub
@@ -460,17 +461,21 @@ Public Sub LoadMultiplicationProgram()
     WriteMemory 19, &H30
     WriteMemory 20, &H0
 
-    ' 15: HLT
-    WriteMemory 21, &HFF
+    ' 15: STORE [82h], BX
+    WriteMemory 21, &H13
+    WriteMemory 22, &H82
+    WriteMemory 23, &H1
+
+    ' 18: HLT
+    WriteMemory 24, &HFF
 
     ' Initial data
     ' 80h = multiplicand = 3
     ' 81h = counter = 4
-    ' 82h = expected result = 12
+    ' 82h = result, written by the program
     WriteMemory &H80, 3
     WriteMemory &H81, 4
-    WriteMemory &H82, 12
-
+    WriteMemory &H82, 0
     ResetCPU
 
 End Sub
