@@ -109,3 +109,85 @@ The micro-operation log records the execution chronologically as:
 FETCH → DECODE → EXECUTE → STORE
 
 for each CPU cycle until the program reaches HLT.
+
+
+## User Manual
+
+### 1. Enable Macros
+
+Open `CPUSimulator.xlsm` in Microsoft Excel and enable VBA macros when prompted.
+
+### 2. Load a Program
+
+Use the **LOAD PROGRAM** button to load the demo program into the memory code segment.
+
+The multiplication demo uses the following initial data:
+
+- `80h = 03h`
+- `81h = 04h`
+- `82h = 0Ch`
+
+### 3. STEP
+
+Press **STEP** to execute exactly one CPU phase at a time.
+
+The phases are:
+
+1. FETCH
+2. DECODE
+3. EXECUTE
+4. STORE
+
+The active phase is highlighted on the simulator.
+
+### 4. RUN
+
+Press **RUN** to execute the program continuously until `HLT`.
+
+The execution delay can be adjusted in the simulator using the RUN delay value.
+
+### 5. PAUSE
+
+Press **PAUSE** to stop continuous execution at the current phase.
+
+After pausing, **STEP** or **RUN** can continue execution from the current CPU state.
+
+### 6. RESET
+
+Press **RESET** to return the CPU registers, flags, program counter and execution state to their initial values.
+
+The micro-operation log is also cleared.
+
+### 7. CPU Registers
+
+The simulator displays:
+
+- PC — Program Counter
+- IR — Instruction Register
+- MAR — Memory Address Register
+- MDR — Memory Data Register
+- AX — General-purpose register
+- BX — General-purpose register
+
+The flags displayed are:
+
+- ZF — Zero Flag
+- CF — Carry Flag
+- SF — Sign Flag
+
+### 8. Memory
+
+The memory contains 256 bytes from `00h` to `FFh`.
+
+- `00h–7Fh`: Code segment
+- `80h–FFh`: Data segment
+
+### 9. Micro-operation Log
+
+The simulator records each CPU phase chronologically.
+
+Each entry contains a step number and the executed phase:
+
+`FETCH → DECODE → EXECUTE → STORE`
+
+The log is cleared when RESET is executed.
