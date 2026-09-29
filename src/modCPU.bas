@@ -352,10 +352,10 @@ Public Sub LogMicroOperation(ByVal phaseName As String)
 
     Set ws = ThisWorkbook.Worksheets("Simulator")
 
-    nextRow = ws.Cells(ws.Rows.Count, "S").End(xlUp).row + 1
-
-    ws.Cells(nextRow, "S").value = LogStep
-    ws.Cells(nextRow, "T").value = phaseName
+    nextRow = ws.Cells(ws.Rows.Count, "V").End(xlUp).row + 1
+    
+    ws.Cells(nextRow, "V").value = LogStep
+    ws.Cells(nextRow, "W").value = phaseName
 
     LogStep = LogStep + 1
 
@@ -386,11 +386,11 @@ Public Sub ResetCPU()
 
     CPUHalted = False
     CurrentPhase = 0
-    LogStep = 0
+    LogStep = 1
     
     HighlightPhase 0
     
-    ThisWorkbook.Worksheets("Simulator").Range("S22:T1000").ClearContents
+    ThisWorkbook.Worksheets("Simulator").Range("V18:W1000").ClearContents
 
     UpdateRegisterPanel
 
@@ -514,7 +514,7 @@ Public Sub RunCPU()
 
     CPURunning = True
 
-    delayMs = ws.Range("T23").value
+    delayMs = Val(ws.Range("W15").value)
 
     If delayMs < 0 Then delayMs = 0
 
