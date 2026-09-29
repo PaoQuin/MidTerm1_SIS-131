@@ -103,3 +103,9 @@ Final result:
 `BX = 0Ch = 12 decimal`
 
 The CPU then reaches `HLT` and stops execution.
+
+The micro-operation log records the execution chronologically as:
+
+FETCH → DECODE → EXECUTE → STORE
+
+for each CPU cycle until the program reaches HLT.
