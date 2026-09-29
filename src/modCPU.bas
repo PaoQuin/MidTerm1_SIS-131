@@ -336,3 +336,34 @@ Public Sub StepCPU()
     UpdateRegisterPanel
 
 End Sub
+
+Public Sub ResetCPU()
+
+    PC = 0
+    IR = 0
+    MAR = 0
+    MDR = 0
+    AX = 0
+    BX = 0
+
+    ZF = 0
+    CF = 0
+    SF = 0
+
+    DecodedOpcode = 0
+    Operand1 = 0
+    Operand2 = 0
+    DecodedInstruction = ""
+
+    PendingResult = 0
+    PendingTarget = 0
+    PendingStore = False
+    PendingMemoryStore = False
+
+    CPUHalted = False
+    CurrentPhase = 0
+
+    UpdateRegisterPanel
+
+End Sub
+
