@@ -37,3 +37,18 @@ Simulador de CPU von Neumann de 8 bits con memoria de 256 bytes (Excel + VBA).
 - **CF (Carry Flag):** 1 when an unsigned addition overflows or a subtraction/compare requires a borrow.
 - **SF (Sign Flag):** Bit 7 of the 8-bit result.
 - `MOV`, `LOAD`, `STORE`, jumps and `HLT` do not modify flags.
+
+
+## CPU Architecture
+
+```mermaid
+flowchart LR
+    MEM["Memory<br/>256 × 8-bit"] <-->|"Address / Data Bus"| CPU["CPU"]
+
+    CPU --> CU["Control Unit"]
+    CPU --> REG["Registers<br/>PC • IR • MAR • MDR • AX • BX"]
+    CPU --> ALU["ALU<br/>ADD • SUB • INC • DEC<br/>AND • OR • XOR • NOT • CMP"]
+
+    CU --> REG
+    CU --> ALU
+    REG <--> ALU
