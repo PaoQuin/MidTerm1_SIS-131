@@ -69,3 +69,15 @@ Public Sub UpdateRegisterPanel()
     ws.Range("T21").value = SF
 
 End Sub
+
+
+Public Sub Fetch()
+
+    MAR = PC
+    MDR = Read(MAR)
+    IR = MDR
+    PC = (PC + 1) Mod 256
+
+    UpdateRegisterPanel
+
+End Sub
