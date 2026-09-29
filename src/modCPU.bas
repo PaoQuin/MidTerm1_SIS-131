@@ -22,6 +22,7 @@ Public PendingMemoryStore As Boolean
 
 Public CurrentPhase As Integer
 Public CPURunning As Boolean
+Public LogStep As Integer
 
 
 Public Function GetRegisterValue(ByVal reg As Integer) As Integer
@@ -311,30 +312,45 @@ Public Sub Store()
 
 End Sub
 Public Sub StepCPU()
-
     If CPUHalted Then Exit Sub
 
     Select Case CurrentPhase
-
         Case 0
             Fetch
+            LogMicroOperation "FETCH"
             CurrentPhase = 1
 
         Case 1
             Decode
+            LogMicroOperation "DECODE"
             CurrentPhase = 2
 
         Case 2
             Execute
+            LogMicroOperation "EXECUTE"
             CurrentPhase = 3
 
         Case 3
             Store
+            LogMicroOperation "STORE"
             CurrentPhase = 0
-
     End Select
 
     UpdateRegisterPanel
+End Sub
+Public Sub LogMicroOperation(ByVal phaseName As String)
+
+    Dim ws As Worksheet
+    Dim nextRow As Long
+
+    Set ws = ThisWorkbook.Worksheets("Simulator")
+
+    nextRow = ws.Cells(ws.Rows.Count, "S").End(xlUp).row + 1
+
+    ws.Cells(nextRow, "S").value = LogStep
+    ws.Cells(nextRow, "T").value = phaseName
+
+    LogStep = LogStep + 1
 
 End Sub
 
@@ -363,6 +379,9 @@ Public Sub ResetCPU()
 
     CPUHalted = False
     CurrentPhase = 0
+    LogStep = 0
+    
+    ThisWorkbook.Worksheets("Simulator").Range("S25:T1000").ClearContents
 
     UpdateRegisterPanel
 
@@ -460,3 +479,10 @@ Public Sub RunCPU()
     CPURunning = False
 
 End Sub
+
+Public Sub PauseCPU()
+
+    CPURunning = False
+
+End Sub
+
