@@ -160,3 +160,69 @@ Public Sub TestMultiplicationProgram()
     End If
 
 End Sub
+Public Sub TestEdgeCases()
+
+    Dim passed As Boolean
+    passed = True
+
+    Debug.Print "===== EDGE CASE TEST ====="
+
+    ' 1. ADD overflow: 255 + 1 = 0, CF = 1
+    AX = 255
+    Operand1 = 0
+    Operand2 = 1
+    DecodedOpcode = &H20
+    Execute
+
+    If PendingResult = 0 And CF = 1 Then
+        Debug.Print "ADD OVERFLOW: PASS"
+    Else
+        Debug.Print "ADD OVERFLOW: FAIL"
+        passed = False
+    End If
+
+    ' 2. PC wraps from FFh to 00h
+    WriteMemory 255, &HFF
+    PC = 255
+    Fetch
+
+    If PC = 0 And IR = &HFF Then
+        Debug.Print "PC WRAP: PASS"
+    Else
+        Debug.Print "PC WRAP: FAIL"
+        passed = False
+    End If
+
+    ' 3. JZ is not taken when ZF = 0
+    PC = 10
+    ZF = 0
+    Operand1 = 100
+    DecodedOpcode = &H31
+    Execute
+
+    If PC = 10 Then
+        Debug.Print "JZ NOT TAKEN: PASS"
+    Else
+        Debug.Print "JZ NOT TAKEN: FAIL"
+        passed = False
+    End If
+
+    ' 4. Invalid opcode halts CPU
+    CPUHalted = False
+    IR = &HFE
+    Decode
+
+    If CPUHalted = True Then
+        Debug.Print "INVALID OPCODE: PASS"
+    Else
+        Debug.Print "INVALID OPCODE: FAIL"
+        passed = False
+    End If
+
+    If passed Then
+        Debug.Print "===== EDGE CASE TEST: PASS ====="
+    Else
+        Debug.Print "===== EDGE CASE TEST: FAIL ====="
+    End If
+
+End Sub
