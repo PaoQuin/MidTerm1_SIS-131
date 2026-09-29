@@ -8,11 +8,27 @@ Public MAR As Integer
 Public MDR As Integer
 Public AX As Integer
 Public BX As Integer
+
 Public DecodedOpcode As Integer
 Public Operand1 As Integer
 Public Operand2 As Integer
 Public DecodedInstruction As String
 Public CPUHalted As Boolean
+
+Public PendingResult As Integer
+Public PendingTarget As Integer
+Public PendingStore As Boolean
+Public PendingMemoryStore As Boolean
+
+Public Function GetRegisterValue(ByVal reg As Integer) As Integer
+
+    If reg = 0 Then
+        GetRegisterValue = AX
+    ElseIf reg = 1 Then
+        GetRegisterValue = BX
+    End If
+
+End Function
 
 Public Sub CreateRegisterPanel()
 
@@ -189,3 +205,81 @@ Public Function ReadNextByte() As Integer
     PC = (PC + 1) Mod 256
 
 End Function
+
+
+Public Sub Execute()
+    Dim a As Integer
+    Dim b As Integer
+
+    PendingStore = False
+    PendingMemoryStore = False
+    PendingTarget = Operand1
+
+    ' First operand is a register. Second is a value (imm) or a register.
+    a = GetRegisterValue(Operand1)
+    If DecodedOpcode = &H20 Or DecodedOpcode = &H22 Or DecodedOpcode = &H26 Then
+        b = Operand2                        ' immediate value
+    Else
+        b = GetRegisterValue(Operand2)      ' register
+    End If
+
+    Select Case DecodedOpcode
+
+        Case &H10   ' MOV reg, imm
+            PendingResult = Operand2
+            PendingStore = True
+
+        Case &H11   ' MOV reg, reg
+            PendingResult = b
+            PendingStore = True
+
+        Case &H12   ' LOAD reg, [addr]
+            MAR = Operand2
+            MDR = Read(MAR)
+            PendingResult = MDR
+            PendingStore = True
+
+        Case &H13   ' STORE [addr], reg
+            MAR = Operand1
+            MDR = b
+            PendingMemoryStore = True
+
+        Case &H20, &H21   ' ADD
+            PendingResult = ALUAdd(a, b)
+            UpdateFlags PendingResult, IIf(a + b > 255, 1, 0)
+            PendingStore = True
+
+        Case &H22, &H23   ' SUB
+            PendingResult = ALUSub(a, b)
+            UpdateFlags PendingResult, IIf(a < b, 1, 0)
+            PendingStore = True
+
+        Case &H24   ' INC (CF stays the same)
+            PendingResult = ALUInc(a)
+            UpdateFlags PendingResult, CF
+            PendingStore = True
+
+        Case &H25   ' DEC (CF stays the same)
+            PendingResult = ALUDec(a)
+            UpdateFlags PendingResult, CF
+            PendingStore = True
+
+        Case &H26, &H27   ' CMP: only flags, no result saved
+            UpdateFlags ALUCmp(a, b), IIf(a < b, 1, 0)
+
+        Case &H30   ' JMP
+            PC = Operand1
+
+        Case &H31   ' JZ
+            If ZF = 1 Then PC = Operand1
+
+        Case &H32   ' JNZ
+            If ZF = 0 Then PC = Operand1
+
+        Case &HFF   ' HLT
+            CPUHalted = True
+
+    End Select
+
+    UpdateRegisterPanel
+End Sub
