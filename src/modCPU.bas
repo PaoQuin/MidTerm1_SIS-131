@@ -561,3 +561,82 @@ Public Sub HighlightPhase(ByVal phase As Integer)
     End Select
 
 End Sub
+
+Public Sub InspectMemory()
+
+    Dim ws As Worksheet
+    Dim address As Integer
+    Dim value As Integer
+
+    Set ws = ThisWorkbook.Worksheets("Simulator")
+
+    ' Read address entered by the user
+    address = CInt("&H" & Replace(ws.Range("Y11").value, "h", ""))
+
+    ' Validate address
+    If address < 0 Or address > 255 Then
+        MsgBox "Address must be between 00h and FFh."
+        Exit Sub
+    End If
+
+    value = Read(address)
+
+    ' Display address
+    ws.Range("Y11").value = Right("0" & Hex(address), 2) & "h"
+
+    ' Display value in different formats
+    ws.Range("Y12").value = Right("0" & Hex(value), 2) & "h"
+    ws.Range("Y13").NumberFormat = "@"
+    ws.Range("Y13").value = DecToBinary(value)
+    ws.Range("Y14").value = value
+
+    ' Display mnemonic
+    ws.Range("Y15").value = GetMnemonic(value)
+
+End Sub
+
+Public Function DecToBinary(ByVal value As Integer) As String
+
+    Dim i As Integer
+    Dim result As String
+
+    result = ""
+
+    For i = 7 To 0 Step -1
+        If (value And (2 ^ i)) <> 0 Then
+            result = result & "1"
+        Else
+            result = result & "0"
+        End If
+    Next i
+
+    DecToBinary = result
+
+End Function
+
+Public Function GetMnemonic(ByVal opcode As Integer) As String
+
+    Select Case opcode
+
+        Case &H10: GetMnemonic = "MOV reg, imm"
+        Case &H11: GetMnemonic = "MOV reg, reg"
+        Case &H12: GetMnemonic = "LOAD reg, [addr]"
+        Case &H13: GetMnemonic = "STORE [addr], reg"
+        Case &H20: GetMnemonic = "ADD reg, imm"
+        Case &H21: GetMnemonic = "ADD reg, reg"
+        Case &H22: GetMnemonic = "SUB reg, imm"
+        Case &H23: GetMnemonic = "SUB reg, reg"
+        Case &H24: GetMnemonic = "INC reg"
+        Case &H25: GetMnemonic = "DEC reg"
+        Case &H26: GetMnemonic = "CMP reg, imm"
+        Case &H27: GetMnemonic = "CMP reg, reg"
+        Case &H30: GetMnemonic = "JMP addr"
+        Case &H31: GetMnemonic = "JZ addr"
+        Case &H32: GetMnemonic = "JNZ addr"
+        Case &HFF: GetMnemonic = "HLT"
+        Case Else: GetMnemonic = "DATA / UNKNOWN"
+
+    End Select
+
+End Function
+
