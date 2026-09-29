@@ -283,3 +283,26 @@ Public Sub Execute()
 
     UpdateRegisterPanel
 End Sub
+
+Public Sub Store()
+
+    If PendingStore Then
+
+        If PendingTarget = 0 Then
+            AX = PendingResult
+        ElseIf PendingTarget = 1 Then
+            BX = PendingResult
+        End If
+
+    ElseIf PendingMemoryStore Then
+
+        WriteMemory MAR, MDR
+
+    End If
+
+    PendingStore = False
+    PendingMemoryStore = False
+
+    UpdateRegisterPanel
+
+End Sub
