@@ -97,7 +97,7 @@ Each instruction runs in four phases. One click on STEP runs one phase.
 | EXECUTE | The ALU runs the operation and updates the flags, a jump changes PC, or LOAD reads memory (MAR ← address, MDR ← RAM[MAR]) |
 | STORE | The result is written to AX or BX, or MDR is written to RAM[MAR] |
 
-Execute keeps its result in pending variables and Store writes it, so every phase can be seen on its own. Instructions with nothing to write (CMP, jumps, HLT) do nothing in Store.
+Execute keeps its result in pending variables and Store writes it, so every phase can be seen on its own. Instructions with nothing to write (CMP, jumps) do nothing in Store. HLT also goes through all four phases: Execute only requests the stop, and the clock actually stops in Store.
 
 ## Instruction Set Architecture (ISA)
 

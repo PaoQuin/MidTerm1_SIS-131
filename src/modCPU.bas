@@ -282,7 +282,7 @@ Public Sub Execute()
             If ZF = 0 Then PC = Operand1
 
         Case &HFF   ' HLT
-            CPUHalted = True
+            ' HLT only requests the stop here; the clock stops in STORE
 
     End Select
 
@@ -350,7 +350,7 @@ Public Sub StepCPU()
             detail = "ZF=" & ZF & " CF=" & CF & " SF=" & SF & ", PC=" & HexByte(PC)
             If PendingStore Then detail = "Result=" & HexByte(PendingResult) & ", " & detail
             If PendingMemoryStore Then detail = "MAR=" & HexByte(MAR) & " MDR=" & HexByte(MDR) & ", " & detail
-            If CPUHalted Then detail = "HLT: clock stopped"
+            If DecodedOpcode = &HFF Then detail = "HLT: stop requested, clock stops in STORE"
             If DecodedOpcode = &H12 Then HighlightMemory MAR   ' LOAD reads memory
             HighlightRegister 15      ' AX
             HighlightRegister 16      ' BX
@@ -366,6 +366,9 @@ Public Sub StepCPU()
             ElseIf PendingMemoryStore Then
                 detail = "MDR -> RAM[" & HexByte(MAR) & "] = " & HexByte(MDR)
                 HighlightMemory MAR
+            ElseIf DecodedOpcode = &HFF Then
+                detail = "HLT: clock stopped"
+                CPUHalted = True
             Else
                 detail = "no write-back"
             End If
