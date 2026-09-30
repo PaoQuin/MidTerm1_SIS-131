@@ -1,30 +1,30 @@
-# MidTerm1_SIS-131: 8-bit CPU Simulator
+# MidTerm1_SIS-131: Simulador de CPU de 8 bits
 
-8-bit von Neumann CPU simulator with 256 bytes of main memory, built in Microsoft Excel with VBA.
-Computer Architecture (SIS-131), Midterm 1, UCB Santa Cruz.
+Simulador de una CPU de 8 bits con arquitectura von Neumann y 256 bytes de memoria principal, hecho en Microsoft Excel con VBA.
+Arquitectura de Computadoras (SIS-131), Primer Parcial, UCB Santa Cruz.
 
-The simulator shows the full instruction cycle (Fetch, Decode, Execute, Store) one phase at a time or continuously, with every register, flag and memory cell visible on the sheet.
+El simulador muestra el ciclo de instrucción completo (Fetch, Decode, Execute, Store) fase por fase o de forma continua, con todos los registros, flags y celdas de memoria visibles en la hoja.
 
-**Defense presentation (Spanish):** [Open slides in Canva](https://canva.link/a534pm9q2unoc57)
+**Presentación de la defensa:** [Abrir las diapositivas en Canva](https://canva.link/a534pm9q2unoc57)
 
-## Contents
+## Contenido
 
-1. [Architecture](#architecture)
-2. [Memory map](#memory-map)
-3. [Registers and flags](#registers-and-flags)
-4. [Instruction cycle](#instruction-cycle)
-5. [Instruction Set Architecture (ISA)](#instruction-set-architecture-isa)
-6. [Demo program and register trace](#demo-program-and-register-trace)
-7. [User manual](#user-manual)
-8. [Tests](#tests)
-9. [Code structure](#code-structure)
+1. [Arquitectura](#arquitectura)
+2. [Mapa de memoria](#mapa-de-memoria)
+3. [Registros y flags](#registros-y-flags)
+4. [Ciclo de instrucción](#ciclo-de-instrucción)
+5. [Conjunto de instrucciones (ISA)](#conjunto-de-instrucciones-isa)
+6. [Programa de demostración y traza de registros](#programa-de-demostración-y-traza-de-registros)
+7. [Manual de usuario](#manual-de-usuario)
+8. [Pruebas](#pruebas)
+9. [Estructura del código](#estructura-del-código)
 
-## Architecture
+## Arquitectura
 
 ```mermaid
 flowchart LR
     subgraph CPU
-        CU["Control Unit<br/>Fetch · Decode · Execute · Store"]
+        CU["Unidad de Control<br/>Fetch · Decode · Execute · Store"]
         PC["PC"]
         IR["IR"]
         MAR["MAR"]
@@ -34,17 +34,17 @@ flowchart LR
         FLAGS["Flags<br/>ZF · CF · SF"]
     end
 
-    subgraph RAM["Main memory: 256 x 8 bits"]
-        CODE["00h-7Fh Code segment"]
-        DATA["80h-FFh Data segment"]
+    subgraph RAM["Memoria principal: 256 x 8 bits"]
+        CODE["00h-7Fh Segmento de código"]
+        DATA["80h-FFh Segmento de datos"]
     end
 
     PC --> MAR
-    MAR -->|address bus| RAM
-    RAM <-->|data bus| MDR
+    MAR -->|bus de direcciones| RAM
+    RAM <-->|bus de datos| MDR
     MDR --> IR
     IR --> CU
-    CU -->|control signals| ALU
+    CU -->|señales de control| ALU
     MDR --> REG
     REG --> MDR
     REG --> ALU
@@ -53,139 +53,139 @@ flowchart LR
     FLAGS --> CU
 ```
 
-The design follows the von Neumann model: one memory holds both the program and the data, and the CPU reaches it only through MAR (address) and MDR (data). The opcode and every operand are read the same way.
+El diseño sigue el modelo von Neumann: una sola memoria guarda el programa y los datos, y la CPU solo accede a ella a través de MAR (dirección) y MDR (dato). El opcode y cada operando se leen de la misma forma.
 
-## Memory map
+## Mapa de memoria
 
-| Range | Segment | Use |
+| Rango | Segmento | Uso |
 |---|---|---|
-| 00h-7Fh | Code | Program instructions (light blue on the sheet) |
-| 80h-FFh | Data | Variables and results (light green on the sheet) |
+| 00h-7Fh | Código | Instrucciones del programa (celeste en la hoja) |
+| 80h-FFh | Datos | Variables y resultados (verde claro en la hoja) |
 
-- 256 cells of 8 bits, shown as a 16 x 16 grid. The row header is the high nibble and the column header is the low nibble, so the cell in row 8, column 2 is address 82h.
-- Each cell shows its value in hexadecimal. The memory inspector shows any address in hexadecimal, binary, decimal and as a mnemonic.
-- All memory access goes through two routines: `Read(address)` and `WriteMemory(address, value)`.
-- A value typed directly into the grid is validated (00h to FFh) and written to memory, so instructions can be changed live.
+- 256 celdas de 8 bits, mostradas como una grilla de 16 x 16. El encabezado de fila es el nibble alto y el de columna es el nibble bajo, así que la celda de la fila 8, columna 2 es la dirección 82h.
+- Cada celda muestra su valor en hexadecimal. El inspector de memoria muestra cualquier dirección en hexadecimal, binario, decimal y como mnemónico.
+- Todo acceso a memoria pasa por dos rutinas: `Read(address)` y `WriteMemory(address, value)`.
+- Un valor escrito directamente en la grilla se valida (00h a FFh) y se guarda en memoria, así que las instrucciones se pueden cambiar en vivo.
 
-## Registers and flags
+## Registros y flags
 
-| Register | Size | Role |
+| Registro | Tamaño | Función |
 |---|---|---|
-| PC | 8 bits | Address of the next byte to read |
-| IR | 8 bits | Opcode of the current instruction |
-| MAR | 8 bits | Address sent to memory |
-| MDR | 8 bits | Data coming from or going to memory |
-| AX | 8 bits | General purpose register, code 00h |
-| BX | 8 bits | General purpose register, code 01h |
+| PC | 8 bits | Dirección del siguiente byte a leer |
+| IR | 8 bits | Opcode de la instrucción actual |
+| MAR | 8 bits | Dirección que se envía a memoria |
+| MDR | 8 bits | Dato que viene de memoria o va hacia ella |
+| AX | 8 bits | Registro de propósito general, código 00h |
+| BX | 8 bits | Registro de propósito general, código 01h |
 
-| Flag | Set to 1 when |
+| Flag | Se pone en 1 cuando |
 |---|---|
-| ZF (Zero) | The 8-bit result is 00h |
-| CF (Carry) | An unsigned addition goes over FFh, or a subtraction/compare needs a borrow (a < b) |
-| SF (Sign) | Bit 7 of the result is 1 (negative in two's complement) |
+| ZF (Zero) | El resultado de 8 bits es 00h |
+| CF (Carry) | Una suma sin signo pasa de FFh, o una resta/comparación necesita préstamo (a < b) |
+| SF (Sign) | El bit 7 del resultado es 1 (negativo en complemento a dos) |
 
-`MOV`, `LOAD`, `STORE`, jumps and `HLT` do not change the flags. `INC` and `DEC` update ZF and SF and keep CF, like the x86.
+`MOV`, `LOAD`, `STORE`, los saltos y `HLT` no cambian los flags. `INC` y `DEC` actualizan ZF y SF y mantienen CF, igual que en x86.
 
-## Instruction cycle
+## Ciclo de instrucción
 
-Each instruction runs in four phases. One click on STEP runs one phase.
+Cada instrucción se ejecuta en cuatro fases. Un clic en STEP ejecuta una fase.
 
-| Phase | Micro-operations |
+| Fase | Micro-operaciones |
 |---|---|
 | FETCH | MAR ← PC, MDR ← RAM[MAR], IR ← MDR, PC ← PC + 1 |
-| DECODE | The control unit reads the opcode in IR and loads the operands: for each one, MAR ← PC, MDR ← RAM[MAR], operand ← MDR, PC ← PC + 1 |
-| EXECUTE | The ALU runs the operation and updates the flags, a jump changes PC, or LOAD reads memory (MAR ← address, MDR ← RAM[MAR]) |
-| STORE | The result is written to AX or BX, or MDR is written to RAM[MAR] |
+| DECODE | La unidad de control lee el opcode en IR y carga los operandos: para cada uno, MAR ← PC, MDR ← RAM[MAR], operando ← MDR, PC ← PC + 1 |
+| EXECUTE | La ALU hace la operación y actualiza los flags, un salto cambia el PC, o LOAD lee memoria (MAR ← dirección, MDR ← RAM[MAR]) |
+| STORE | El resultado se escribe en AX o BX, o MDR se escribe en RAM[MAR] |
 
-Execute keeps its result in pending variables and Store writes it, so every phase can be seen on its own. Instructions with nothing to write (CMP, jumps) do nothing in Store. HLT also goes through all four phases: Execute only requests the stop, and the clock actually stops in Store.
+Execute guarda su resultado en variables pendientes y Store lo escribe, así cada fase se puede ver por separado. Las instrucciones que no tienen nada que escribir (CMP, saltos) no hacen nada en Store. HLT también pasa por las cuatro fases: Execute solo solicita la parada y el reloj se detiene realmente en Store.
 
-## Instruction Set Architecture (ISA)
+## Conjunto de instrucciones (ISA)
 
-Instructions have variable length: one opcode byte followed by zero, one or two operand bytes. Opcodes are grouped by type: 1x data transfer, 2x arithmetic, 3x control flow.
+Las instrucciones tienen longitud variable: un byte de opcode seguido de cero, uno o dos bytes de operandos. Los opcodes se agrupan por tipo: 1x transferencia de datos, 2x aritmética, 3x control de flujo.
 
-| Opcode | Mnemonic | Bytes | Format | Description | Flags |
+| Opcode | Mnemónico | Bytes | Formato | Descripción | Flags |
 |---|---|---:|---|---|---|
-| 10h | MOV reg, imm | 3 | 10 r imm | reg ← imm | None |
-| 11h | MOV reg, reg | 3 | 11 rd rs | rd ← rs | None |
-| 12h | LOAD reg, [addr] | 3 | 12 r addr | reg ← RAM[addr] | None |
-| 13h | STORE [addr], reg | 3 | 13 addr r | RAM[addr] ← reg | None |
+| 10h | MOV reg, imm | 3 | 10 r imm | reg ← imm | Ninguno |
+| 11h | MOV reg, reg | 3 | 11 rd rs | rd ← rs | Ninguno |
+| 12h | LOAD reg, [addr] | 3 | 12 r addr | reg ← RAM[addr] | Ninguno |
+| 13h | STORE [addr], reg | 3 | 13 addr r | RAM[addr] ← reg | Ninguno |
 | 20h | ADD reg, imm | 3 | 20 r imm | reg ← reg + imm | ZF, CF, SF |
 | 21h | ADD reg, reg | 3 | 21 rd rs | rd ← rd + rs | ZF, CF, SF |
 | 22h | SUB reg, imm | 3 | 22 r imm | reg ← reg − imm | ZF, CF, SF |
 | 23h | SUB reg, reg | 3 | 23 rd rs | rd ← rd − rs | ZF, CF, SF |
-| 24h | INC reg | 2 | 24 r | reg ← reg + 1 | ZF, SF (CF kept) |
-| 25h | DEC reg | 2 | 25 r | reg ← reg − 1 | ZF, SF (CF kept) |
-| 26h | CMP reg, imm | 3 | 26 r imm | reg − imm, result not saved | ZF, CF, SF |
-| 27h | CMP reg, reg | 3 | 27 ra rb | ra − rb, result not saved | ZF, CF, SF |
-| 30h | JMP addr | 2 | 30 addr | PC ← addr | None |
-| 31h | JZ addr | 2 | 31 addr | If ZF = 1, PC ← addr | None |
-| 32h | JNZ addr | 2 | 32 addr | If ZF = 0, PC ← addr | None |
-| FFh | HLT | 1 | FF | Stops the clock | None |
+| 24h | INC reg | 2 | 24 r | reg ← reg + 1 | ZF, SF (CF se mantiene) |
+| 25h | DEC reg | 2 | 25 r | reg ← reg − 1 | ZF, SF (CF se mantiene) |
+| 26h | CMP reg, imm | 3 | 26 r imm | reg − imm, el resultado no se guarda | ZF, CF, SF |
+| 27h | CMP reg, reg | 3 | 27 ra rb | ra − rb, el resultado no se guarda | ZF, CF, SF |
+| 30h | JMP addr | 2 | 30 addr | PC ← addr | Ninguno |
+| 31h | JZ addr | 2 | 31 addr | Si ZF = 1, PC ← addr | Ninguno |
+| 32h | JNZ addr | 2 | 32 addr | Si ZF = 0, PC ← addr | Ninguno |
+| FFh | HLT | 1 | FF | Detiene el reloj | Ninguno |
 
-Register codes: 00h = AX, 01h = BX. Any other opcode is treated as invalid and halts the CPU.
+Códigos de registro: 00h = AX, 01h = BX. Cualquier otro opcode se considera inválido y detiene la CPU.
 
-The ALU also implements AND, OR, XOR and NOT. They are tested in `TestALU` but are not part of the minimum instruction set required by the assignment.
+La ALU también implementa AND, OR, XOR y NOT. Se prueban en `TestALU`, pero no forman parte del conjunto mínimo de instrucciones que pide el enunciado.
 
-## Demo program and register trace
+## Programa de demostración y traza de registros
 
-### Multiplication by repeated addition: 3 x 4 = 12
+### Multiplicación por sumas sucesivas: 3 x 4 = 12
 
-The counter lives in memory because the CPU has only two registers. AX handles the counter and the multiplicand, and BX accumulates the result.
+El contador vive en memoria porque la CPU tiene solo dos registros. AX maneja el contador y el multiplicando, y BX acumula el resultado.
 
-Initial data (loaded by LOAD PROGRAM):
+Datos iniciales (los carga LOAD PROGRAM):
 
-| Address | Value | Meaning |
+| Dirección | Valor | Significado |
 |---|---:|---|
-| 80h | 03h | Multiplicand |
-| 81h | 04h | Counter |
-| 82h | 00h | Result (written by the program) |
+| 80h | 03h | Multiplicando |
+| 81h | 04h | Contador |
+| 82h | 00h | Resultado (lo escribe el programa) |
 
-Program listing:
+Listado del programa:
 
-| Addr | Bytes | Instruction | Comment |
+| Dir | Bytes | Instrucción | Comentario |
 |---|---|---|---|
-| 00h | 12 00 81 | LOAD AX, [81h] | Loop start: read the counter |
-| 03h | 26 00 00 | CMP AX, 00h | Is the counter 0? |
-| 06h | 31 15 | JZ 15h | If yes, leave the loop |
-| 08h | 25 00 | DEC AX | Counter − 1 |
-| 0Ah | 13 81 00 | STORE [81h], AX | Save the counter |
-| 0Dh | 12 00 80 | LOAD AX, [80h] | Read the multiplicand |
-| 10h | 21 01 00 | ADD BX, AX | BX ← BX + multiplicand |
-| 13h | 30 00 | JMP 00h | Back to the loop start |
-| 15h | 13 82 01 | STORE [82h], BX | Save the result |
-| 18h | FF | HLT | Stop |
+| 00h | 12 00 81 | LOAD AX, [81h] | Inicio del bucle: leer el contador |
+| 03h | 26 00 00 | CMP AX, 00h | ¿El contador es 0? |
+| 06h | 31 15 | JZ 15h | Si es así, salir del bucle |
+| 08h | 25 00 | DEC AX | Contador − 1 |
+| 0Ah | 13 81 00 | STORE [81h], AX | Guardar el contador |
+| 0Dh | 12 00 80 | LOAD AX, [80h] | Leer el multiplicando |
+| 10h | 21 01 00 | ADD BX, AX | BX ← BX + multiplicando |
+| 13h | 30 00 | JMP 00h | Volver al inicio del bucle |
+| 15h | 13 82 01 | STORE [82h], BX | Guardar el resultado |
+| 18h | FF | HLT | Parar |
 
-Jump check: the loop body takes 3+3+2+2+3+3+3+2 = 21 bytes, so the exit STORE sits at 15h (21 decimal).
+Verificación del salto: el cuerpo del bucle ocupa 3+3+2+2+3+3+3+2 = 21 bytes, así que el STORE de salida queda en 15h (21 en decimal).
 
-### Phase-by-phase trace of the first instruction
+### Traza fase por fase de la primera instrucción
 
-`LOAD AX, [81h]` starting with PC = 00h:
+`LOAD AX, [81h]` empezando con PC = 00h:
 
-| Phase | PC | MAR | MDR | IR | AX | What happens |
+| Fase | PC | MAR | MDR | IR | AX | Qué pasa |
 |---|---|---|---|---|---|---|
-| FETCH | 01h | 00h | 12h | 12h | 00h | Opcode 12h read from 00h |
-| DECODE (operand 1) | 02h | 01h | 00h | 12h | 00h | Register code 00h = AX |
-| DECODE (operand 2) | 03h | 02h | 81h | 12h | 00h | Address 81h |
-| EXECUTE | 03h | 81h | 04h | 12h | 00h | RAM[81h] read into MDR |
+| FETCH | 01h | 00h | 12h | 12h | 00h | Se lee el opcode 12h desde 00h |
+| DECODE (operando 1) | 02h | 01h | 00h | 12h | 00h | Código de registro 00h = AX |
+| DECODE (operando 2) | 03h | 02h | 81h | 12h | 00h | Dirección 81h |
+| EXECUTE | 03h | 81h | 04h | 12h | 00h | RAM[81h] se lee en MDR |
 | STORE | 03h | 81h | 04h | 12h | 04h | AX ← 04h |
 
-### Register trace per loop iteration
+### Traza de registros por iteración
 
-Values after `ADD BX, AX` in each iteration:
+Valores después de `ADD BX, AX` en cada iteración:
 
-| Iteration | RAM[81h] | AX | BX | ZF | CF | SF |
+| Iteración | RAM[81h] | AX | BX | ZF | CF | SF |
 |---:|---:|---:|---:|---:|---:|---:|
-| Start | 04h | 00h | 00h | 0 | 0 | 0 |
+| Inicio | 04h | 00h | 00h | 0 | 0 | 0 |
 | 1 | 03h | 03h | 03h | 0 | 0 | 0 |
 | 2 | 02h | 03h | 06h | 0 | 0 | 0 |
 | 3 | 01h | 03h | 09h | 0 | 0 | 0 |
 | 4 | 00h | 03h | 0Ch | 0 | 0 | 0 |
 
-Exit: `LOAD AX, [81h]` gives AX = 00h, `CMP AX, 00h` sets ZF = 1, `JZ 15h` is taken, `STORE [82h], BX` writes 0Ch, and `HLT` stops the clock.
+Salida: `LOAD AX, [81h]` deja AX = 00h, `CMP AX, 00h` pone ZF = 1, se toma `JZ 15h`, `STORE [82h], BX` escribe 0Ch y `HLT` detiene el reloj.
 
-Final state:
+Estado final:
 
-| Item | Value |
+| Elemento | Valor |
 |---|---|
 | AX | 00h |
 | BX | 0Ch (12) |
@@ -194,13 +194,13 @@ Final state:
 | ZF, CF, SF | 1, 0, 0 |
 | PC | 19h |
 
-In total the program runs 37 instructions: 8 per iteration x 4 iterations, plus 5 on the way out.
+En total el programa ejecuta 37 instrucciones: 8 por iteración x 4 iteraciones, más 5 a la salida.
 
-### Second program: countdown with JNZ
+### Segundo programa: cuenta regresiva con JNZ
 
-Loaded with LOAD COUNTDOWN. It counts 5 down to 0, saving each value at 80h.
+Se carga con LOAD COUNTDOWN. Cuenta de 5 a 0 y guarda cada valor en 80h.
 
-| Addr | Bytes | Instruction |
+| Dir | Bytes | Instrucción |
 |---|---|---|
 | 00h | 12 00 80 | LOAD AX, [80h] |
 | 03h | 25 00 | DEC AX |
@@ -209,41 +209,41 @@ Loaded with LOAD COUNTDOWN. It counts 5 down to 0, saving each value at 80h.
 | 0Bh | 32 03 | JNZ 03h |
 | 0Dh | FF | HLT |
 
-Initial data: 80h = 05h. Final state: AX = 00h, RAM[80h] = 00h, ZF = 1.
+Dato inicial: 80h = 05h. Estado final: AX = 00h, RAM[80h] = 00h, ZF = 1.
 
-## User manual
+## Manual de usuario
 
-1. **Open the file.** Open `CPUSimulator.xlsm` in desktop Excel (Excel Online does not run macros) and click **Enable Content** when the macro warning appears.
-2. **Load a program.** Click **LOAD PROGRAM** for the multiplication demo or **LOAD COUNTDOWN** for the second program. The code appears in the blue segment, the data in the green segment, and the CPU is reset.
-3. **Run it step by step.** Click **STEP**. Each click runs one phase. The active phase lights up in the phase panel (FETCH, DECODE, EXECUTE, STORE), the registers and memory cell involved are highlighted, and one line is added to the micro-operation log.
-4. **Run it continuously.** Type a delay in milliseconds in the **DELAY (ms)** cell (for example 300) and click **RUN**. The program runs until HLT.
-5. **Pause.** Click **PAUSE** during RUN. Execution stops at the current phase. STEP or RUN continue from there.
-6. **Reset.** Click **RESET**. Registers, flags, PC and phase go back to zero and the log is cleared. The program stays in memory, so it can run again.
-7. **Edit memory by hand.** Click any cell of the grid and type a hex value from 00 to FF (with or without `h`). Invalid values are rejected. This is how a new instruction can be inserted while the simulator is open.
-8. **Inspect an address.** Type an address in the inspector's **Address** cell and click **INSPECT**. It shows the value in hexadecimal, binary and decimal, and the mnemonic if the byte is an opcode.
+1. **Abrir el archivo.** Abre `CPUSimulator.xlsm` en Excel de escritorio (Excel Online no ejecuta macros) y haz clic en **Habilitar contenido** cuando aparezca el aviso de macros.
+2. **Cargar un programa.** Haz clic en **LOAD PROGRAM** para la multiplicación o en **LOAD COUNTDOWN** para el segundo programa. El código aparece en el segmento azul, los datos en el verde, y la CPU se reinicia.
+3. **Ejecutar paso a paso.** Haz clic en **STEP**. Cada clic ejecuta una fase. La fase activa se ilumina en el panel de fases (FETCH, DECODE, EXECUTE, STORE), se resaltan los registros y la celda de memoria que intervienen, y se agrega una línea al log de micro-operaciones.
+4. **Ejecutar de forma continua.** Escribe un retardo en milisegundos en la celda **DELAY (ms)** (por ejemplo 300) y haz clic en **RUN**. El programa corre hasta HLT.
+5. **Pausar.** Haz clic en **PAUSE** durante RUN. La ejecución se detiene en la fase actual. STEP o RUN siguen desde ahí.
+6. **Reiniciar.** Haz clic en **RESET**. Registros, flags, PC y fase vuelven a cero y se limpia el log. El programa se queda en memoria, así que se puede volver a ejecutar.
+7. **Editar la memoria a mano.** Haz clic en cualquier celda de la grilla y escribe un valor hexadecimal de 00 a FF (con o sin `h`). Los valores inválidos se rechazan. Así se puede insertar una instrucción nueva con el simulador abierto.
+8. **Inspeccionar una dirección.** Escribe una dirección en la celda **Address** del inspector y haz clic en **INSPECT**. Muestra el valor en hexadecimal, binario y decimal, y el mnemónico si el byte es un opcode.
 
-## Tests
+## Pruebas
 
-The tests are in `modTest` and print PASS or FAIL in the VBA Immediate Window (`Ctrl + G`).
+Las pruebas están en `modTest` e imprimen PASS o FAIL en la ventana Inmediato de VBA (`Ctrl + G`).
 
-| Macro | What it checks |
+| Macro | Qué verifica |
 |---|---|
-| `TestALU` | The nine ALU operations and the ZF, CF and SF flags |
-| `TestMultiplicationProgram` | The demo program halts with BX = 0Ch, RAM[81h] = 00h and RAM[82h] = 0Ch |
-| `TestEdgeCases` | FFh + 01h = 00h with CF = 1, PC wraps from FFh to 00h, JZ is not taken when ZF = 0, an invalid opcode halts the CPU |
+| `TestALU` | Las nueve operaciones de la ALU y los flags ZF, CF y SF |
+| `TestMultiplicationProgram` | El programa de demostración se detiene con BX = 0Ch, RAM[81h] = 00h y RAM[82h] = 0Ch |
+| `TestEdgeCases` | FFh + 01h = 00h con CF = 1, el PC pasa de FFh a 00h, JZ no salta cuando ZF = 0, un opcode inválido detiene la CPU |
 
-## Code structure
+## Estructura del código
 
-| File | Contents |
+| Archivo | Contenido |
 |---|---|
-| `src/modMemory.bas` | Memory grid, `Read`, `WriteMemory` |
-| `src/modALU.bas` | ALU operations and `UpdateFlags` |
-| `src/modCPU.bas` | Registers, Fetch, Decode, Execute, Store, STEP/RUN/PAUSE/RESET, demo programs |
-| `src/modUI.bas` | Micro-operation log and highlighting |
-| `src/modTest.bas` | Automated tests |
-| `src/modControl.bas` | `ExportModules`, which saves the VBA code as text in `src/` |
-| `src/Hoja1.cls` | Validation of manual memory edits |
+| `src/modMemory.bas` | Grilla de memoria, `Read`, `WriteMemory` |
+| `src/modALU.bas` | Operaciones de la ALU y `UpdateFlags` |
+| `src/modCPU.bas` | Registros, Fetch, Decode, Execute, Store, STEP/RUN/PAUSE/RESET, programas de demostración |
+| `src/modUI.bas` | Log de micro-operaciones y resaltado |
+| `src/modTest.bas` | Pruebas automáticas |
+| `src/modControl.bas` | `ExportModules`, que guarda el código VBA como texto en `src/` |
+| `src/Hoja1.cls` | Validación de las ediciones manuales de memoria |
 
-The `.xlsm` is binary, so the code is exported to `src/` before every commit. That way each commit shows the real code changes.
+El `.xlsm` es binario, así que el código se exporta a `src/` antes de cada commit. Así cada commit muestra los cambios reales del código.
 
-The memory map leaves room for the second midterm: the system bus and I/O can be added as new modules without changing the CPU cycle.
+El mapa de memoria deja espacio para el segundo parcial: el bus del sistema y la E/S se pueden agregar como módulos nuevos sin cambiar el ciclo de la CPU.
