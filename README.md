@@ -5,7 +5,7 @@ Arquitectura de Computadoras (SIS-131), Primer Parcial, UCB Santa Cruz.
 
 El simulador muestra el ciclo de instrucción completo (Fetch, Decode, Execute, Store) fase por fase o de forma continua, con todos los registros, flags y celdas de memoria visibles en la hoja.
 
-**Presentación de la defensa:** [Abrir las diapositivas en Canva](https://canva.link/a534pm9q2unoc57)
+**Presentación de la defensa:** [Abrir diapositivas](https://canva.link/a534pm9q2unoc57)
 
 ## Contenido
 
