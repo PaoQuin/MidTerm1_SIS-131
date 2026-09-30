@@ -5,7 +5,7 @@ Computer Architecture (SIS-131), Midterm 1, UCB Santa Cruz.
 
 The simulator shows the full instruction cycle (Fetch, Decode, Execute, Store) one phase at a time or continuously, with every register, flag and memory cell visible on the sheet.
 
-**Defense presentation (Spanish):** [Open the slides in Canva](https://canva.link/a534pm9q2unoc57)
+**Defense presentation (Spanish):** [Open slides in Canva](https://canva.link/a534pm9q2unoc57)
 
 ## Contents
 
