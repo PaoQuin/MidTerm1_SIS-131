@@ -160,3 +160,58 @@ Private Sub AddButton(ByVal ws As Worksheet, ByVal caption As String, ByVal macr
         .TextRange.Font.Fill.ForeColor.RGB = RGB(255, 255, 255)
     End With
 End Sub
+
+
+' Extra styling: full register names, quick guide and dark console log
+Public Sub StyleExtras()
+    Dim ws As Worksheet
+    Dim i As Integer
+    Set ws = ThisWorkbook.Worksheets("Simulator")
+
+    ' Small gaps
+    ws.Range("A2").Interior.Color = RGB(31, 56, 100)
+    ws.Range("S17:T17").Borders.LineStyle = xlNone
+    ws.Range("S16:T16").Borders(xlEdgeBottom).LineStyle = xlContinuous
+    ws.Range("S16:T16").Borders(xlEdgeBottom).Color = RGB(191, 191, 191)
+
+    ' Full register and flag names (labels only, values in column T are untouched)
+    ws.Columns("S").ColumnWidth = 24
+    ws.Range("S11").value = "PC (Program Counter)"
+    ws.Range("S12").value = "IR (Instruction Reg)"
+    ws.Range("S13").value = "MAR (Mem Address Reg)"
+    ws.Range("S14").value = "MDR (Mem Data Reg)"
+    ws.Range("S15").value = "AX (Accumulator)"
+    ws.Range("S16").value = "BX (General)"
+    ws.Range("S19").value = "ZF (Zero Flag)"
+    ws.Range("S20").value = "CF (Carry Flag)"
+    ws.Range("S21").value = "SF (Sign Flag)"
+    ws.Range("S11:S16,S19:S21").HorizontalAlignment = xlLeft
+    ws.Range("S11:S16,S19:S21").IndentLevel = 1
+    ws.Range("T11:T21").Font.Color = RGB(31, 56, 100)
+    ws.Range("T11:T21").Font.Bold = True
+
+    ' Quick guide in the empty top-right area
+    StyleHeader ws.Range("V2:Y2"), "QUICK GUIDE"
+    ws.Range("V3").value = "1.  LOAD PROGRAM or COUNTDOWN writes a program into memory"
+    ws.Range("V4").value = "2.  STEP runs one phase;  RUN runs until HLT (delay in W15)"
+    ws.Range("V5").value = "3.  PAUSE stops RUN;  RESET clears registers, flags and the log"
+    ws.Range("V6").value = "4.  Type an address in Y11 and press INSPECT"
+    ws.Range("V7").value = "Yellow = active phase and register   |   Orange = memory cell in use"
+    For i = 3 To 7
+        ws.Range("V" & i & ":Y" & i).Merge
+        ws.Range("V" & i).HorizontalAlignment = xlLeft
+        ws.Range("V" & i).IndentLevel = 1
+    Next i
+    ws.Range("V3:Y7").Interior.Color = RGB(242, 242, 242)
+    ws.Range("V7").Font.Italic = True
+    ws.Range("V7").Font.Color = RGB(91, 107, 127)
+    LightBorders ws.Range("V3:Y7")
+
+    ' Dark console log
+    With ws.Range("V18:W400")
+        .Interior.Color = RGB(30, 30, 30)
+        .Font.Color = RGB(146, 208, 80)
+    End With
+    ws.Range("V17:W17").Interior.Color = RGB(0, 0, 0)
+End Sub
+
